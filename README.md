@@ -16,7 +16,7 @@ Sistema de gerenciamento de demandas em **Laravel** e **Bootstrap 5**.
 
 ```bash
 # 1. Clonar e acessar
-git clone [https://github.com/seu-usuario/demandflow.git](https://github.com/seu-usuario/demandflow.git) && cd demandflow
+git clone [https://github.com/LuizFelipe2023/demandflow.git](https://github.com/LuizFelipe2023/demandflow.git) && cd demandflow
 
 # 2. Instalar dependências
 composer install
