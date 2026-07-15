@@ -1,0 +1,10 @@
+.table-responsive {
+    overflow: visible !important;
+}
+
+@media (max-width: 991.98px) {
+    .table-responsive {
+        overflow-x: auto !important;
+        padding-bottom: 60px;
+    }
+}

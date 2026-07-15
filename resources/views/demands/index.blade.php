@@ -1,5 +1,5 @@
 @extends('layouts.app')
-
+<link rel="stylesheet" href="{{ asset('css/indexDemands.css') }}">
 @section('content')
 <div class="container-fluid py-3">
 
@@ -101,9 +101,11 @@
 
                                     <td class="text-center pe-3">
                                         <div class="dropdown">
+                                            {{-- Alteração feita aqui: adicionado data-bs-boundary="viewport" --}}
                                             <button class="btn btn-sm btn-light border dropdown-toggle" 
                                                     type="button" 
                                                     data-bs-toggle="dropdown" 
+                                                    data-bs-boundary="viewport"
                                                     aria-expanded="false">
                                                 <i class="bi bi-three-dots-vertical"></i> Ações
                                             </button>
@@ -115,7 +117,12 @@
                                                     </a>
                                                 </li>
 
-                                
+                                                <li>
+                                                    <a class="dropdown-item" href="{{ route('demands.pdf', $demand->id) }}" target="_blank">
+                                                        <i class="bi bi-file-earmark-pdf text-danger me-2"></i> Gerar PDF
+                                                    </a>
+                                                </li>
+
                                                 <li>
                                                     <a class="dropdown-item" href="{{ route('demands.edit', $demand) }}">
                                                         <i class="bi bi-pencil text-primary me-2"></i> Editar
@@ -165,4 +172,5 @@
 
     </div>
 </div>
+
 @endsection

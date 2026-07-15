@@ -9,7 +9,7 @@
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('demands.index') }}">Demandas</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Demanda #{{ $demand->id }}</li>
-            </ol>
+            </</ol>
         </nav>
         <a href="{{ route('demands.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Voltar
@@ -35,9 +35,15 @@
                         <h4 class="fw-bold mb-0 text-dark">{{ $demand->title }}</h4>
                     </div>
 
-                    <a href="{{ route('demands.edit', $demand) }}" class="btn btn-primary btn-sm">
-                        <i class="bi bi-pencil me-1"></i> Editar
-                    </a>
+                    {{-- Grupo de botões ajustado com o botão de PDF --}}
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('demands.pdf', $demand->id) }}" class="btn btn-outline-danger btn-sm" target="_blank">
+                            <i class="bi bi-file-earmark-pdf me-1"></i> Gerar PDF
+                        </a>
+                        <a href="{{ route('demands.edit', $demand) }}" class="btn btn-primary btn-sm">
+                            <i class="bi bi-pencil me-1"></i> Editar
+                        </a>
+                    </div>
                 </div>
 
                 <div class="card-body p-4">
@@ -126,16 +132,30 @@
                                     </small>
                                 </div>
 
-                                {{-- Botão para Excluir Registro do Histórico --}}
-                                <form action="{{ route('demands.histories.destroy', [$demand, $history]) }}" method="POST">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-link text-danger p-0 opacity-75 opacity-100-hover" 
-                                            onclick="return confirm('Deseja realmente remover este registro do histórico?')" 
-                                            title="Excluir">
-                                        <i class="bi bi-trash"></i>
+                                <div class="d-flex gap-2">
+                                    <button type="button" 
+                                            class="btn btn-sm btn-link text-primary p-0 opacity-75 opacity-100-hover"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#editHistoryModal"
+                                            data-history-id="{{ $history->id }}"
+                                            data-history-type="{{ $history->type }}"
+                                            data-history-description="{{ $history->description }}"
+                                            data-history-old-status="{{ $history->old_status }}"
+                                            data-history-new-status="{{ $history->new_status }}"
+                                            title="Editar">
+                                        <i class="bi bi-pencil"></i>
                                     </button>
-                                </form>
+
+                                    <form action="{{ route('demands.histories.destroy', [$demand, $history]) }}" method="POST">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button class="btn btn-sm btn-link text-danger p-0 opacity-75 opacity-100-hover" 
+                                                onclick="return confirm('Deseja realmente remover este registro do histórico?')" 
+                                                title="Excluir">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
 
                             <p class="mt-2 mb-1 text-secondary">{{ $history->description }}</p>
@@ -159,7 +179,7 @@
 
         </div>
 
-  
+    
         <div class="col-lg-4">
             <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
                 <div class="card-header bg-white py-3 border-bottom">
@@ -176,6 +196,58 @@
                 </div>
             </div>
         </div>
+
+                    
+        <div class="modal fade" id="editHistoryModal" tabindex="-1" aria-labelledby="editHistoryModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content shadow">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold text-dark" id="editHistoryModalLabel">
+                            <i class="bi bi-pencil-square me-2 text-primary"></i>Editar Atualização
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-close="modal" aria-label="Close"></button>
+                    </div>
+                    
+                    <form id="editHistoryForm" method="POST" action="" data-demand-id="{{ $demand->id }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="modal-body">
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tipo da atualização</label>
+                                <select name="type" id="edit_type" class="form-select" required>
+                                    <option value="COMMENT">Comentário</option>
+                                    <option value="STATUS_CHANGE">Alteração de status</option>
+                                    <option value="CORRECTION">Correção</option>
+                                    <option value="DEPLOY">Deploy/Publicação</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Atualização</label>
+                                <textarea name="description"
+                                        id="edit_description"
+                                        rows="4"
+                                        maxlength="1000"
+                                        class="form-control"
+                                        placeholder="Descreva a atualização da demanda..." required></textarea>
+                            </div>
+
+                        </div>
+
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-close="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-1"></i> Salvar alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script src="{{ asset('js/demand_histories/editForm.js') }}"></script>
 
     </div>
 </div>

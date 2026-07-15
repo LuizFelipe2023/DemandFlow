@@ -19,7 +19,9 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
 
-  
+    Route::get('demands/{id}/pdf', [DemandController::class, 'generateDemandPdf'])
+        ->name('demands.pdf');
+
     Route::resource('demands', DemandController::class);
 
     Route::resource('demands.histories', DemandHistoryController::class)
@@ -29,7 +31,7 @@ Route::middleware('auth')->group(function () {
             'destroy'
         ]);
 
-  
+
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 
     Route::middleware(IsAdmin::class)->group(function () {

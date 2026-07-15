@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Services\ReportService;
 use App\Http\Services\UserService;
 use App\Models\Demand;
 use App\Http\Services\DemandService;
@@ -13,10 +14,13 @@ class DemandController extends Controller
     protected DemandService $demandService;
     protected UserService $userService;
 
-    public function __construct(DemandService $demandService, UserService $userService)
+    protected ReportService $reportService;
+
+    public function __construct(DemandService $demandService, UserService $userService, ReportService $reportService)
     {
         $this->demandService = $demandService;
         $this->userService = $userService;
+        $this->reportService = $reportService;
     }
 
     /**
@@ -92,4 +96,10 @@ class DemandController extends Controller
             ->route('demands.index')
             ->with('success', 'Demanda removida com sucesso!');
     }
+
+    public function generateDemandPdf($id)
+    {
+           return $this->reportService->generateDemandReport($id);
+    }
+
 }
