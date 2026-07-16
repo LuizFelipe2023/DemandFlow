@@ -8,16 +8,10 @@ use Illuminate\Support\Facades\DB;
 
 class DemandService
 {
-    /**
-     * Injeta a dependência do service especialista em histórico.
-     */
     public function __construct(
         protected DemandHistoryService $historyService
     ) {}
 
-    /**
-     * Retorna as demandas paginadas e otimizadas com o responsável.
-     */
     public function getAll(int $perPage = 10): LengthAwarePaginator
     {
         return Demand::with('responsible')
@@ -25,9 +19,6 @@ class DemandService
             ->paginate($perPage);
     }
 
-    /**
-     * Busca uma demanda com o responsável e históricos (com o autor do histórico).
-     */
     public function findById(int $id): Demand
     {
         return Demand::with([
@@ -36,15 +27,11 @@ class DemandService
         ])->findOrFail($id);
     }
 
-    /**
-     * Cria a demanda e registra o primeiro histórico reutilizando o DemandHistoryService.
-     */
     public function store(array $data): Demand
     {
         return DB::transaction(function () use ($data) {
             $demand = Demand::create($data);
 
-            // Reutiliza o Service de Histórico
             $this->historyService->store($demand, [
                 'type' => 'COMMENT',
                 'description' => 'Demanda criada no sistema.'
@@ -54,9 +41,6 @@ class DemandService
         });
     }
 
-    /**
-     * Atualiza a demanda e registra alteração de status via DemandHistoryService.
-     */
     public function update(Demand $demand, array $data): Demand
     {
         return DB::transaction(function () use ($demand, $data) {
@@ -64,7 +48,6 @@ class DemandService
 
             $demand->update($data);
 
-            // Se o status mudou, delega a criação do histórico para o service especializado
             if (isset($data['status']) && $oldStatus !== $demand->status) {
                 $this->historyService->store($demand, [
                     'type' => 'STATUS_CHANGE',
@@ -78,11 +61,33 @@ class DemandService
         });
     }
 
-    /**
-     * Remove a demanda.
-     */
     public function delete(Demand $demand): void
     {
         $demand->delete();
+    }
+
+    public function audit(Demand $demand, array $data): Demand
+    {
+        return DB::transaction(function () use ($demand, $data) {
+            $approved = (bool) ($data['audit_approved'] ?? false);
+            $justification = $approved ? null : ($data['justification'] ?? null);
+
+            $demand->update([
+                'is_audited'     => true,
+                'audit_approved' => $approved,
+                'justification'  => $justification,
+            ]);
+
+            $description = $approved
+                ? 'Demanda auditada e LIBERADA pelo gerente.'
+                : "Demanda auditada e RECUSADA. Motivo: {$justification}";
+
+            $this->historyService->store($demand, [
+                'type'        => 'AUDIT',
+                'description' => $description,
+            ]);
+
+            return $demand->refresh();
+        });
     }
 }

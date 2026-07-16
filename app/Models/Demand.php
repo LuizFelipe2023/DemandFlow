@@ -17,26 +17,24 @@ class Demand extends Model
         'requester',
         'responsible_id',
         'system',
-        'status',
         'priority',
         'demand_date',
+        'is_audited',
+        'audit_approved',
+        'justification',
     ];
 
     protected $casts = [
-        'demand_date' => 'date',
+        'demand_date'    => 'date',
+        'is_audited'     => 'boolean',
+        'audit_approved' => 'boolean',
     ];
 
-    /**
-     * Histórico de alterações da demanda.
-     */
     public function histories(): HasMany
     {
         return $this->hasMany(DemandHistory::class);
     }
 
-    /**
-     * Usuário responsável pela execução da demanda.
-     */
     public function responsible(): BelongsTo
     {
         return $this->belongsTo(User::class, 'responsible_id');

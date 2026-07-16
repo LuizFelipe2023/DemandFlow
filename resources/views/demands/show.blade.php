@@ -9,13 +9,12 @@
             <ol class="breadcrumb mb-0">
                 <li class="breadcrumb-item"><a href="{{ route('demands.index') }}">Demandas</a></li>
                 <li class="breadcrumb-item active" aria-current="page">Demanda #{{ $demand->id }}</li>
-            </</ol>
+            </ol>
         </nav>
         <a href="{{ route('demands.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-arrow-left me-1"></i> Voltar
         </a>
     </div>
-
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show shadow-sm mb-3" role="alert">
@@ -35,7 +34,6 @@
                         <h4 class="fw-bold mb-0 text-dark">{{ $demand->title }}</h4>
                     </div>
 
-                    {{-- Grupo de botões ajustado com o botão de PDF --}}
                     <div class="d-flex gap-2">
                         <a href="{{ route('demands.pdf', $demand->id) }}" class="btn btn-outline-danger btn-sm" target="_blank">
                             <i class="bi bi-file-earmark-pdf me-1"></i> Gerar PDF
@@ -111,6 +109,7 @@
                 </div>
             </div>
 
+            {{-- Card do Histórico da Demanda --}}
             <div class="card shadow-sm border-0">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="fw-bold mb-0 text-dark">
@@ -180,7 +179,60 @@
         </div>
 
     
+        {{-- Coluna Lateral (Auditoria + Adicionar Atualização) --}}
         <div class="col-lg-4">
+            
+            {{-- BLOCO DE AUDITORIA GERENCIAL --}}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-white py-3 border-bottom d-flex align-items-center">
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-shield-check me-2 text-warning"></i>Auditoria Gerencial
+                    </h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    @if(!$demand->is_audited)
+                        <p class="text-muted small mb-3">
+                            Esta demanda aguarda auditoria para liberação ou recusa.
+                        </p>
+                        <div class="d-grid gap-2">
+                            {{-- Form Direto para Liberar --}}
+                            <form action="{{ route('demands.audit', $demand) }}" method="POST">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="audit_approved" value="1">
+                                <button type="submit" class="btn btn-success w-100">
+                                    <i class="bi bi-check-circle me-1"></i> Liberar Demanda
+                                </button>
+                            </form>
+
+                            {{-- Botão que abre o Modal de Recusa --}}
+                            <button type="button" class="btn btn-outline-danger w-100" data-bs-toggle="modal" data-bs-target="#auditRejectModal">
+                                <i class="bi bi-x-circle me-1"></i> Recusar Demanda
+                            </button>
+                        </div>
+                    @else
+                        {{-- Exibe o status após auditado --}}
+                        <div class="text-center py-2">
+                            @if($demand->audit_approved)
+                                <span class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Auditada e Liberada
+                                </span>
+                            @else
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle fs-6 px-3 py-2 mb-3">
+                                    <i class="bi bi-x-circle-fill me-1"></i> Auditada e Recusada
+                                </span>
+                                <div class="text-start p-3 bg-light rounded-3 border">
+                                    <small class="text-muted fw-bold d-block mb-1">Justificativa da Recusa:</small>
+                                    <span class="text-secondary fs-7">{{ $demand->justification }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Card para Adicionar Atualização --}}
             <div class="card shadow-sm border-0 sticky-top" style="top: 20px;">
                 <div class="card-header bg-white py-3 border-bottom">
                     <h5 class="fw-bold mb-0 text-dark">
@@ -197,7 +249,55 @@
             </div>
         </div>
 
-                    
+        {{-- MODAL: RECUSAR DEMANDA (JUSTIFICATIVA) --}}
+        <div class="modal fade" id="auditRejectModal" tabindex="-1" aria-labelledby="auditRejectModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content shadow">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold" id="auditRejectModalLabel">
+                            <i class="bi bi-exclamation-triangle me-2"></i>Recusar Demanda
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <form action="{{ route('demands.audit', $demand) }}" method="POST">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="audit_approved" value="0">
+
+                        <div class="modal-body p-4">
+                            <p class="text-secondary fs-7">
+                                Por favor, informe o motivo pelo qual esta demanda está sendo recusada ou não atendeu às expectativas.
+                            </p>
+
+                            <div class="mb-3">
+                                <label for="justification" class="form-label fw-semibold">
+                                    Justificativa <span class="text-danger">*</span>
+                                </label>
+                                <textarea name="justification" 
+                                          id="justification" 
+                                          rows="4" 
+                                          class="form-control @error('justification') is-invalid @enderror" 
+                                          placeholder="Digite detalhadamente a justificativa..." 
+                                          required></textarea>
+                                @error('justification')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="bi bi-x-circle me-1"></i> Confirmar Recusa
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {{-- MODAL: EDITAR HISTÓRICO --}}
         <div class="modal fade" id="editHistoryModal" tabindex="-1" aria-labelledby="editHistoryModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content shadow">
@@ -205,7 +305,7 @@
                         <h5 class="modal-title fw-bold text-dark" id="editHistoryModalLabel">
                             <i class="bi bi-pencil-square me-2 text-primary"></i>Editar Atualização
                         </h5>
-                        <button type="button" class="btn-close" data-bs-close="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     
                     <form id="editHistoryForm" method="POST" action="" data-demand-id="{{ $demand->id }}">
@@ -213,7 +313,6 @@
                         @method('PUT')
 
                         <div class="modal-body">
-                            
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tipo da atualização</label>
                                 <select name="type" id="edit_type" class="form-select" required>
@@ -233,11 +332,10 @@
                                         class="form-control"
                                         placeholder="Descreva a atualização da demanda..." required></textarea>
                             </div>
-
                         </div>
 
                         <div class="modal-footer bg-light">
-                            <button type="button" class="btn btn-secondary" data-bs-close="modal">Cancelar</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-send me-1"></i> Salvar alterações
                             </button>

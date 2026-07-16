@@ -22,6 +22,9 @@ Route::middleware('auth')->group(function () {
     Route::get('demands/{id}/pdf', [DemandController::class, 'generateDemandPdf'])
         ->name('demands.pdf');
 
+    Route::patch('demands/{demand}/audit', [DemandController::class, 'audit'])
+        ->name('demands.audit');
+
     Route::resource('demands', DemandController::class);
 
     Route::resource('demands.histories', DemandHistoryController::class)
@@ -30,7 +33,6 @@ Route::middleware('auth')->group(function () {
             'update',
             'destroy'
         ]);
-
 
     Route::get('users/{user}', [UserController::class, 'show'])->name('users.show');
 

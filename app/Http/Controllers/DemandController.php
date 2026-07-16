@@ -8,12 +8,12 @@ use App\Models\Demand;
 use App\Http\Services\DemandService;
 use App\Http\Requests\StoreDemandRequest;
 use App\Http\Requests\UpdateDemandRequest;
+use App\Http\Requests\AuditDemandRequest; 
 
 class DemandController extends Controller
 {
     protected DemandService $demandService;
     protected UserService $userService;
-
     protected ReportService $reportService;
 
     public function __construct(DemandService $demandService, UserService $userService, ReportService $reportService)
@@ -39,7 +39,7 @@ class DemandController extends Controller
     public function create()
     {
         $users = $this->userService->getAll();
-        return view('demands.create',compact('users'));
+        return view('demands.create', compact('users'));
     }
 
     /**
@@ -97,9 +97,26 @@ class DemandController extends Controller
             ->with('success', 'Demanda removida com sucesso!');
     }
 
-    public function generateDemandPdf($id)
+    /**
+     * Realiza a auditoria da demanda (liberação ou recusa).
+     */
+    public function audit(AuditDemandRequest $request, Demand $demand)
     {
-           return $this->reportService->generateDemandReport($id);
+        $data = $request->validated();
+
+        $this->demandService->audit($demand, $data);
+
+        $message = $data['audit_approved']
+            ? 'Demanda auditada e liberada com sucesso!'
+            : 'Demanda auditada e recusada com sucesso.';
+
+        return redirect()
+            ->route('demands.show', $demand->id)
+            ->with('success', $message);
     }
 
+    public function generateDemandPdf($id)
+    {
+        return $this->reportService->generateDemandReport($id);
+    }
 }
