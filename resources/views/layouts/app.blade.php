@@ -56,6 +56,14 @@
                             <i class="bi bi-people me-1"></i> Usuários
                         </a>
                     </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center {{ request()->is('log-viewer*') ? 'active fw-semibold' : '' }}"
+                           href="{{ url('log-viewer') }}" 
+                           target="_blank">
+                            <i class="bi bi-journal-text me-1 text-warning"></i> Logs
+                        </a>
+                    </li>
                     @endif
 
                     @endauth
@@ -81,7 +89,6 @@
                                 </li>
                                 <li><hr class="dropdown-divider"></li>
                                 
-                                {{-- Link para ver o próprio perfil (liberado para todos) --}}
                                 <li>
                                     <a class="dropdown-item d-flex align-items-center" href="{{ route('users.show', Auth::id()) }}">
                                         <i class="bi bi-person-badge me-2 text-secondary"></i> Meu Perfil
