@@ -111,7 +111,7 @@ class DemandController extends Controller
             : 'Demanda auditada e recusada com sucesso.';
 
         return redirect()
-            ->route('demands.show', $demand->id)
+            ->back()
             ->with('success', $message);
     }
 
